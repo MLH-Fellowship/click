@@ -509,7 +509,7 @@ class File(ParamType):
 
     def shell_complete(self, ctx, all_args, incomplete):
         """Given a partial value and current arguments, this returns metadata in a list
-        to signal the shell to use its own completion for files.
+        to signal to the shell to use its own completion for files.
         """
         return [("file", incomplete, None)]
 

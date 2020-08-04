@@ -154,8 +154,6 @@ class ShellComplete(ABC):
         automatically invoked by :func:`shell_complete`. The string
         will also be formatted with the variables ``script_name``,
         ``autocomplete_var`` and ``complete_func`` first.
-
-        The default implementation is raising a not implemented error.
         """
         pass
 
@@ -166,8 +164,6 @@ class ShellComplete(ABC):
         from parameters/types, handle special commands in shell-specific ways,
         output other information for the command type, etc. Whatever the case
         may be, the function should also return ``True``.
-
-        The default implementation is raising a not implemented error.
         """
         pass
 

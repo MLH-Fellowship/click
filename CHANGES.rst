@@ -35,6 +35,8 @@ Unreleased
     values from environment variables and defaults. :issue:`729`
 -   Detect the program name when executing a module or package with
     ``python -m name``. :issue:`1603`
+-   Redesign the autocomplete system to be more extensible
+    and support file and path completions. :issue:`1484`, :pr:`1622`
 
 
 Version 7.1.2

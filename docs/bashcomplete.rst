@@ -4,7 +4,8 @@ Shell Completion
 .. versionadded:: 2.0
 
 Click can provide tab completion for commands, options, and choice
-values. Bash, Zsh, and Fish are supported
+values. Bash (version 4.4 and up), Zsh, and Fish are supported, but
+it is possible to register your own :ref:`custom-shell-completion`.
 
 Completion is only available if a script is installed and invoked
 through an entry point, not through the ``python`` command. See
@@ -16,8 +17,8 @@ What it Completes
 
 Generally, the shell completion support will complete commands,
 options, and any option or argument values where the type is
-:class:`click.Choice`. Options are only listed if at least a dash has
-been entered.
+:class:`click.Choice`, :class:`click.File`, or :class:`click.Path`.
+Options are only listed if at least a dash has been entered.
 
 .. code-block:: text
 
@@ -81,6 +82,7 @@ suggestions with help strings:
     def cmd1(color):
         click.echo(f"Chosen color is {color}")
 
+.. _activation:
 
 Activation
 ----------
@@ -161,3 +163,49 @@ For Fish, add the file to the completions directory:
 .. code-block:: text
 
     _FOO_BAR_COMPLETE=source_fish foo-bar > ~/.config/fish/completions/foo-bar-complete.fish
+
+
+.. _custom-shell-completion:
+
+
+Custom Shell Completion
+-----------------------
+
+.. versionadded:: 8.0.0
+
+It is possible to register your own completion script. This is useful when you
+wish to use completion in a shell not already supported by Click such as
+PowerShell or an older version of Bash.
+
+To begin, your custom shell completion class must extend ``ShellComplete``, and
+it must override :meth:`ShellComplete.source` and :meth:`ShellComplete.complete`.
+
+To activate your custom shell completion, add :func:`add_completion_class`
+to your Click program and follow the steps described in :ref:`activation`.
+
+Here is an example for a ``foo-bar`` script using Bash.
+
+In the Click program:
+
+.. code-block:: python
+
+    from click.shell_completion import ShellComplete
+    from click.shell_completion import add_completion_class
+
+    class MyBashComplete(ShellComplete):
+        def source(self):
+            return "complete -W "foo bar" %(script_names)s"
+
+        def complete(self):
+            return True
+
+    add_completion_class("myshell", MyBashComplete)
+
+In the current shell, run:
+
+.. code-block:: text
+
+    eval “$(_FOO_BAR_COMPELTE=source_myshell foo-bar)”
+
+Note that the value ``name`` passed to ``add_completion_class``
+and the value ``shell`` used in ``source_{shell}`` must match.

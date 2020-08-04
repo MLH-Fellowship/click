@@ -169,6 +169,19 @@ Parsing
 .. autoclass:: OptionParser
    :members:
 
+Shell Completion
+----------------
+
+.. autoclass:: ShellComplete
+   :members:
+
+.. autofunction:: add_completion_class
+
+.. autofunction:: resolve_ctx
+
+.. autofunction:: resolve_partial_value
+
+
 Testing
 -------
 
