@@ -37,6 +37,10 @@ from .formatting import HelpFormatter
 from .formatting import wrap_text
 from .globals import get_current_context
 from .parser import OptionParser
+from .shell_completion import add_completion_class
+from .shell_completion import resolve_ctx
+from .shell_completion import resolve_partial_value
+from .shell_completion import ShellComplete
 from .termui import clear
 from .termui import confirm
 from .termui import echo_via_pager

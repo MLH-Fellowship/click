@@ -25,6 +25,7 @@ from .termui import style
 from .types import BOOL
 from .types import convert_type
 from .types import IntRange
+from .types import ParamType
 from .utils import _detect_program_name
 from .utils import echo
 from .utils import make_default_short_help
@@ -54,7 +55,7 @@ def fast_exit(code):
     os._exit(code)
 
 
-def _bashcomplete(cmd, prog_name, complete_var=None):
+def _shell_complete(cmd, prog_name, complete_var=None):
     """Internal handler for the bash completion support."""
     if complete_var is None:
         complete_var = f"_{prog_name}_COMPLETE".replace("-", "_").upper()
@@ -62,9 +63,9 @@ def _bashcomplete(cmd, prog_name, complete_var=None):
     if not complete_instr:
         return
 
-    from ._bashcomplete import bashcomplete
+    from .shell_completion import shell_complete
 
-    if bashcomplete(cmd, prog_name, complete_var, complete_instr):
+    if shell_complete(cmd, prog_name, complete_var, complete_instr):
         fast_exit(1)
 
 
@@ -125,6 +126,14 @@ def iter_params_for_processing(invocation_order, declaration_order):
         return (not item.is_eager, idx)
 
     return sorted(declaration_order, key=sort_key)
+
+
+def _get_visible_commands(ctx, incomplete):
+    for c in ctx.command.list_commands(ctx):
+        if c.startswith(incomplete):
+            command = ctx.command.get_command(ctx, c)
+            if not command.hidden:
+                yield command
 
 
 class ParameterSource:
@@ -746,6 +755,28 @@ class BaseCommand:
         """
         raise NotImplementedError("Base commands are not invokable by default")
 
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns a list of
+        commands to complete the partial value by walking the context tree in search
+        of chained :class:`MultiCommand`.
+        """
+        results = []
+        while ctx.parent is not None:
+            ctx = ctx.parent
+            if isinstance(ctx.command, MultiCommand) and ctx.command.chain:
+                remaining_commands = [
+                    c
+                    for c in _get_visible_commands(ctx, incomplete)
+                    if c.name not in ctx.protected_args
+                ]
+                results.extend(
+                    [
+                        ("plain", c.name, c.get_short_help_str())
+                        for c in remaining_commands
+                    ]
+                )
+        return results
+
     def main(
         self,
         args=None,
@@ -801,7 +832,7 @@ class BaseCommand:
         # Hook for the Bash completion.  This only activates if the Bash
         # completion is actually enabled, otherwise this is quite a fast
         # noop.
-        _bashcomplete(self, prog_name, complete_var)
+        _shell_complete(self, prog_name, complete_var)
 
         try:
             try:
@@ -1097,6 +1128,31 @@ class Command(BaseCommand):
         if self.callback is not None:
             return ctx.invoke(self.callback, **ctx.params)
 
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns a list of
+        options that complete the partial value (if it begins with "-"), otherwise,
+        attempts to complete the partial value with chained commands.
+        """
+        results = []
+        if incomplete and incomplete[:1] == "-":
+            for param in self.get_params(ctx):
+                if isinstance(param, Option) and not param.hidden:
+                    param_opts = [
+                        param_opt
+                        for param_opt in param.opts + param.secondary_opts
+                        if param_opt not in all_args or param.multiple
+                    ]
+                    results.extend(
+                        [
+                            ("plain", o, param.help)
+                            for o in param_opts
+                            if o.startswith(incomplete)
+                        ]
+                    )
+        else:
+            results.extend(BaseCommand.shell_complete(self, ctx, all_args, incomplete))
+        return results
+
 
 class MultiCommand(Command):
     """A multi command is the basic implementation of a command that
@@ -1339,8 +1395,7 @@ class MultiCommand(Command):
             if split_opt(cmd_name)[0]:
                 self.parse_args(ctx, ctx.args)
             ctx.fail(f"No such command '{original_cmd_name}'.")
-
-        return cmd.name, cmd, args[1:]
+        return cmd.name if cmd else None, cmd, args[1:]
 
     def get_command(self, ctx, cmd_name):
         """Given a context and a command name, this returns a
@@ -1353,6 +1408,25 @@ class MultiCommand(Command):
         appear.
         """
         return []
+
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns a list of
+        options that complete the partial value (if it begins with "-"), otherwise,
+        attempts to complete the partial value with subcommands and chained commands.
+        """
+        if incomplete and incomplete[:1] == "-":
+            return Command.shell_complete(self, ctx, all_args, incomplete)
+
+        results = []
+        results.extend(
+            [
+                ("plain", c.name, c.get_short_help_str())
+                for c in _get_visible_commands(ctx, incomplete)
+            ]
+        )
+        results.extend(BaseCommand.shell_complete(self, ctx, all_args, incomplete))
+
+        return results
 
 
 class Group(MultiCommand):
@@ -1697,6 +1771,24 @@ class Parameter:
         """
         hint_list = self.opts or [self.human_readable_name]
         return " / ".join(repr(x) for x in hint_list)
+
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns a list of
+        completions based on :attr:`type` if successful, otherwise uses
+        :attr:`autocompletion` if instantiated with one.
+        """
+        results = []
+        if isinstance(self.type, ParamType):
+            results = self.type.shell_complete(ctx, all_args, incomplete)
+        if not results and self.autocompletion is not None:
+            dynamic_completions = self.autocompletion(
+                ctx=ctx, args=all_args, incomplete=incomplete
+            )
+            results = [
+                ("plain",) + c if isinstance(c, tuple) else ("plain", c, None)
+                for c in dynamic_completions
+            ]
+        return results
 
 
 class Option(Parameter):

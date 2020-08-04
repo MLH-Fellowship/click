@@ -73,6 +73,9 @@ class ParamType:
         """Helper method to fail with an invalid value message."""
         raise BadParameter(message, ctx=ctx, param=param)
 
+    def shell_complete(self, ctx, all_args, incomplete):
+        return []
+
 
 class CompositeParamType(ParamType):
     is_composite = True
@@ -196,6 +199,14 @@ class Choice(ParamType):
 
     def __repr__(self):
         return f"Choice({list(self.choices)})"
+
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns a list of
+        choices that start with the partial value.
+        """
+        return [
+            ("plain", c, None) for c in self.choices if str(c).startswith(incomplete)
+        ]
 
 
 class DateTime(ParamType):
@@ -496,6 +507,12 @@ class File(ParamType):
                 ctx,
             )
 
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns metadata in a list
+        to signal the shell to use its own completion for files.
+        """
+        return [("file", incomplete, None)]
+
 
 class Path(ParamType):
     """The path type is similar to the :class:`File` type but it performs
@@ -614,6 +631,14 @@ class Path(ParamType):
                 )
 
         return self.coerce_path_result(rv)
+
+    def shell_complete(self, ctx, all_args, incomplete):
+        """Given a partial value and current arguments, this returns metadata in a list
+        to signal to the shell to use its own completion for files if `file_okay=True`
+        and `dir_okay=False`, and directories otherwise.
+        """
+        completion_type = "dir" if self.dir_okay and not self.file_okay else "file"
+        return [(completion_type, incomplete, None)]
 
 
 class Tuple(CompositeParamType):
