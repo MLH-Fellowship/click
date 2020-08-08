@@ -129,11 +129,11 @@ def iter_params_for_processing(invocation_order, declaration_order):
 
 
 def _get_visible_commands(ctx, incomplete):
-    for c in ctx.command.list_commands(ctx):
-        if c.startswith(incomplete):
-            command = ctx.command.get_command(ctx, c)
+    for name in ctx.command.list_commands(ctx):
+        if name.startswith(incomplete):
+            command = ctx.command.get_command(ctx, name)
             if not command.hidden:
-                yield command
+                yield name, command
 
 
 class ParameterSource:
@@ -765,14 +765,14 @@ class BaseCommand:
             ctx = ctx.parent
             if isinstance(ctx.command, MultiCommand) and ctx.command.chain:
                 remaining_commands = [
-                    c
-                    for c in _get_visible_commands(ctx, incomplete)
-                    if c.name not in ctx.protected_args
+                    (name, command)
+                    for name, command in _get_visible_commands(ctx, incomplete)
+                    if name not in ctx.protected_args
                 ]
                 results.extend(
                     [
-                        ("plain", c.name, c.get_short_help_str())
-                        for c in remaining_commands
+                        ("plain", name, command.get_short_help_str())
+                        for name, command in remaining_commands
                     ]
                 )
         return results
@@ -1420,8 +1420,8 @@ class MultiCommand(Command):
         results = []
         results.extend(
             [
-                ("plain", c.name, c.get_short_help_str())
-                for c in _get_visible_commands(ctx, incomplete)
+                ("plain", name, command.get_short_help_str())
+                for name, command in _get_visible_commands(ctx, incomplete)
             ]
         )
         results.extend(BaseCommand.shell_complete(self, ctx, all_args, incomplete))
