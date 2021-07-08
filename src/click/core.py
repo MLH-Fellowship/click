@@ -2420,6 +2420,8 @@ class Option(Parameter):
                          help page. Normally, defaults are not shown. If this
                          value is a string, it shows the string instead of the
                          value. This is particularly useful for dynamic options.
+                         For single option boolean flags, the default remains hidden
+                         if its value is False.
     :param show_envvar: controls if an environment variable should be shown on
                         the help page.  Normally, environment variables
                         are not shown.
@@ -2454,6 +2456,10 @@ class Option(Parameter):
 
     .. versionchanged:: 8.0.1
         ``type`` is detected from ``flag_value`` if given.
+
+    .. versionchanged:: 8.1.0
+        defaults of single option boolean flags are not shown if the
+        default value is False
     """
 
     param_type_name = "option"
