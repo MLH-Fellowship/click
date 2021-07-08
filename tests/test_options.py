@@ -716,16 +716,21 @@ def test_show_true_default_boolean_flag_value(runner):
     assert "[default: True]" in message
 
 
-def test_hide_false_default_boolean_flag_value(runner):
-    """When a boolean flag only has one opt and its default is False,
-    it will not show the default
+@pytest.mark.parametrize("default", [False, None])
+def test_hide_false_default_boolean_flag_value(runner, default):
+    """When a boolean flag only has one opt and its default is False or
+    None, it will not show the default
     """
     opt = click.Option(
-        ("--cache",), is_flag=True, show_default=True, help="Enable the cache."
+        ("--cache",),
+        is_flag=True,
+        show_default=True,
+        default=default,
+        help="Enable the cache.",
     )
     ctx = click.Context(click.Command("test"))
     message = opt.get_help_record(ctx)[1]
-    assert "[default: False]" not in message
+    assert "[default: " not in message
 
 
 def test_show_default_string(runner):
