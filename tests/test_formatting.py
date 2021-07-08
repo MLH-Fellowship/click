@@ -316,7 +316,7 @@ def test_removing_multiline_marker(runner):
 
 
 def test_global_show_default(runner):
-    """Note: default to "--help" would not be shown"""
+    # Note: default to "--help" would not be shown
 
     @click.command(context_settings=dict(show_default=True))
     @click.option("-f", "in_file", default="out.txt", help="Output file name")
