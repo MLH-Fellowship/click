@@ -2746,7 +2746,7 @@ class Option(Parameter):
                     (self.opts if self.default else self.secondary_opts)[0]
                 )[1]
             elif self.is_bool_flag and not self.secondary_opts and not default_value:
-                default_string = None
+                default_string = ""
             else:
                 default_string = str(default_value)
 
