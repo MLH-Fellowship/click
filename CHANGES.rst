@@ -5,6 +5,9 @@ Version 8.1.0
 
 Unreleased
 
+-   Single options boolean flags with ``show_default=True`` hides the default
+    when the default value is False. :issue:`1971`:
+
 
 Version 8.0.2
 -------------
