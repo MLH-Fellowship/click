@@ -22,7 +22,7 @@ def check_symlink_impl():
     rv = True
     try:
         os.symlink(test_pth, sym_pth)
-    except NotImplementedError:
+    except (NotImplementedError, OSError):
         rv = False
     finally:
         shutil.rmtree(os.path.join(TEMP_DIR, "click"))

@@ -106,9 +106,7 @@ def test_path_type(runner, cls, expect):
     assert result.return_value == expect
 
 
-@pytest.mark.skipif(
-    not check_symlink_impl(), reason="symlink not implemented on device"
-)
+@pytest.mark.skipif(not check_symlink_impl(), reason="symlink not allowed on device")
 def test_relative_symlink_resolution():
     TEMP_DIR = os.path.join(tempfile.gettempdir())
     shutil.rmtree(os.path.join(TEMP_DIR, "click"), ignore_errors=True)
