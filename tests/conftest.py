@@ -13,10 +13,9 @@ def runner(request):
 
 
 def check_symlink_impl():
-    TEMP_DIR = os.path.join(tempfile.gettempdir())
-    os.makedirs(os.path.join(TEMP_DIR, "click"), exist_ok=True)
-    test_pth = os.path.join(TEMP_DIR, "click", "test_sym_impl")
-    sym_pth = os.path.join(TEMP_DIR, "click", "sym_test_symlink_impl")
+    tempdir = tempfile.mkdtemp(prefix="click-")
+    test_pth = os.path.join(tempdir, "check_sym_impl")
+    sym_pth = os.path.join(tempdir, "link")
     with open(test_pth, "w"):
         pass
     rv = True
@@ -25,5 +24,5 @@ def check_symlink_impl():
     except (NotImplementedError, OSError):
         rv = False
     finally:
-        shutil.rmtree(os.path.join(TEMP_DIR, "click"))
+        shutil.rmtree(tempdir, ignore_errors=True)
     return rv
