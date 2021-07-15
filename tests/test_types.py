@@ -4,7 +4,7 @@ import shutil
 import tempfile
 
 import pytest
-from tests.conftest import check_symlink_impl
+from conftest import check_symlink_impl
 
 import click
 
