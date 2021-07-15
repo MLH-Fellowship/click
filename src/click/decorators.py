@@ -342,19 +342,16 @@ def version_option(
         frame = inspect.currentframe()
         assert frame is not None
         assert frame.f_back is not None
-        f_globals = frame.f_back.f_globals if frame is not None else None
+        assert frame.f_back.f_globals is not None
+        f_globals = frame.f_back.f_globals
         # break reference cycle
         # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
         del frame
-
-        if f_globals is not None:
-            package_name = f_globals.get("__name__")
-
-            if package_name == "__main__":
-                package_name = f_globals.get("__package__")
-
-            if package_name:
-                package_name = package_name.partition(".")[0]
+        package_name = f_globals.get("__name__")
+        if package_name == "__main__":
+            package_name = f_globals.get("__package__")
+        if package_name:
+            package_name = package_name.partition(".")[0]
 
     def callback(ctx: Context, param: Parameter, value: bool) -> None:
         if not value or ctx.resilient_parsing:
