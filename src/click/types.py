@@ -836,10 +836,13 @@ class Path(ParamType):
 
         if not is_dash:
             if self.resolve_path:
+                # get the absolute directory path of "rv"
                 dir_ = os.path.dirname(os.path.abspath(rv))
                 if os.path.islink(rv):
                     rv = os.readlink(rv)
 
+                # Prepends dir_ to resolved relative symlink
+                # Has no effect if passed an absolute path
                 rv = os.path.join(dir_, rv)
 
             try:
