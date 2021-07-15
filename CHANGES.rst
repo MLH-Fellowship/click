@@ -5,6 +5,7 @@ Version 8.0.2
 
 Unreleased
 
+-   Fix resolution of relative symlink. :issue:`1921`
 -   ``is_bool_flag`` is not set to ``True`` if ``is_flag`` is ``False``.
     :issue:`1925`
 -   Bash version detection is locale independent. :issue:`1940`
