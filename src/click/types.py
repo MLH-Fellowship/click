@@ -836,8 +836,6 @@ class Path(ParamType):
 
         if not is_dash:
             if self.resolve_path:
-                # realpath on Windows Python < 3.8 doesn't resolve symlinks
-                rv = os.path.expanduser(rv)
                 dir_ = os.path.dirname(os.path.abspath(rv))
                 if os.path.islink(rv):
                     rv = os.readlink(rv)
