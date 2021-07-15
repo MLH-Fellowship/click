@@ -339,14 +339,11 @@ def version_option(
         message = _("%(prog)s, version %(version)s")
 
     if version is None and package_name is None:
-        frame = inspect.currentframe()
-        assert frame is not None
-        assert frame.f_back is not None
-        assert frame.f_back.f_globals is not None
-        f_globals = frame.f_back.f_globals
-        # break reference cycle
-        # https://docs.python.org/3/library/inspect.html#the-interpreter-stack
-        del frame
+        try:
+            f_globals = inspect.currentframe().frame.f_back.f_globals
+        except AttributeError:
+            raise AssertionError()
+
         package_name = f_globals.get("__name__")
         if package_name == "__main__":
             package_name = f_globals.get("__package__")
