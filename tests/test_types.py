@@ -1,6 +1,10 @@
+import os.path
 import pathlib
+import shutil
+import tempfile
 
 import pytest
+from tests.conftest import check_symlink_impl
 
 import click
 
@@ -100,3 +104,34 @@ def test_path_type(runner, cls, expect):
     result = runner.invoke(cli, ["a/b/c.txt"], standalone_mode=False)
     assert result.exception is None
     assert result.return_value == expect
+
+
+@pytest.mark.skipif(
+    not check_symlink_impl(), reason="symlink not implemented on device"
+)
+def test_relative_symlink_resolution():
+    TEMP_DIR = os.path.join(tempfile.gettempdir())
+    shutil.rmtree(os.path.join(TEMP_DIR, "click"), ignore_errors=True)
+
+    real_path = os.path.join(TEMP_DIR, "click", "test", "test_file")
+    sym_path = os.path.join(TEMP_DIR, "click", "test", "symlink_to_test_file")
+    test_path = os.path.join(
+        TEMP_DIR, "click", "tmp2", "..", "test", "tmp3", "..", "symlink_to_test_file"
+    )
+
+    # create dirs and files
+    os.makedirs(os.path.join(TEMP_DIR, "click", "test", "tmp3"), exist_ok=True)
+    os.makedirs(os.path.join(TEMP_DIR, "click", "tmp2"), exist_ok=True)
+    with open(real_path, "w"):
+        pass
+
+    # force creation of relative symlink
+    os.symlink(os.path.basename(real_path), sym_path)
+
+    # test
+    ctx = click.Context(click.Command("do_stuff"))
+    rv = click.Path(resolve_path=True).convert(test_path, None, ctx)
+    assert rv == real_path
+
+    # remove temp files
+    shutil.rmtree(os.path.join(TEMP_DIR, "click"), ignore_errors=True)
