@@ -339,14 +339,12 @@ def version_option(
         message = _("%(prog)s, version %(version)s")
 
     if version is None and package_name is None:
-        try:
-            f_globals = inspect.currentframe().frame.f_back.f_globals
-        except AttributeError:
-            raise AssertionError()
-
+        f_globals = inspect.currentframe().f_back.f_globals
         package_name = f_globals.get("__name__")
+
         if package_name == "__main__":
             package_name = f_globals.get("__package__")
+
         if package_name:
             package_name = package_name.partition(".")[0]
 
