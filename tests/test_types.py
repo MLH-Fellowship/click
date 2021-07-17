@@ -119,8 +119,7 @@ def test_symlink_resolution(tmpdir, sym_file, abs_fun):
 
     # create dirs and files
     os.makedirs(os.path.join(tempdir, "test"), exist_ok=True)
-    with open(real_path, "w"):
-        pass
+    open(real_path, "w").close()
     os.symlink(abs_fun(real_path), sym_path)
 
     # test

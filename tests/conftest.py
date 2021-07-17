@@ -16,8 +16,7 @@ def check_symlink_impl():
     tempdir = tempfile.mkdtemp(prefix="click-")
     test_pth = os.path.join(tempdir, "check_sym_impl")
     sym_pth = os.path.join(tempdir, "link")
-    with open(test_pth, "w"):
-        pass
+    open(test_pth, "w").close()
     rv = True
     try:
         os.symlink(test_pth, sym_pth)
