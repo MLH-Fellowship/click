@@ -113,6 +113,7 @@ def test_path_type(runner, cls, expect):
     ],
 )
 def test_symlink_resolution(tmpdir, sym_file, abs_fun):
+    """This test ensures symlinks are properly resolved by click"""
     tempdir = str(tmpdir)
     real_path = os.path.join(tempdir, "test_file")
     sym_path = os.path.join(tempdir, *sym_file)

@@ -13,6 +13,8 @@ def runner(request):
 
 
 def check_symlink_impl():
+    """This function checks if using symlinks is allowed
+    on the host machine"""
     tempdir = tempfile.mkdtemp(prefix="click-")
     test_pth = os.path.join(tempdir, "check_sym_impl")
     sym_pth = os.path.join(tempdir, "link")
@@ -21,6 +23,8 @@ def check_symlink_impl():
     try:
         os.symlink(test_pth, sym_pth)
     except (NotImplementedError, OSError):
+        # Creating symlinks on Windows require elevated access.
+        # OSError is thrown if the function is called without it.
         rv = False
     finally:
         shutil.rmtree(tempdir, ignore_errors=True)
